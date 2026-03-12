@@ -26,7 +26,7 @@ export async function GET(
     .where(eq(channels.id, channelId))
     .limit(1);
 
-  if (channel.length === 0) {
+  if (channel.length === 0 || channel[0].workspaceId !== authResult.workspaceId) {
     return new Response(JSON.stringify({ status: "fail", message: "Channel not found" }), {
       status: 404,
       headers: { "Content-Type": "application/json" },
