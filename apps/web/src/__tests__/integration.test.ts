@@ -31,15 +31,21 @@ const dbChain: Record<string, unknown> & PromiseLike<unknown[]> = {
   where: jest.fn().mockReturnThis(),
   limit: jest.fn().mockImplementation(() => Promise.resolve(nextSelect())),
   returning: jest.fn().mockImplementation(() => Promise.resolve(nextInsert())),
-  then(onFulfilled: (v: unknown[]) => unknown, onRejected?: (e: unknown) => unknown) {
-    return Promise.resolve(nextSelect()).then(onFulfilled as any, onRejected as any);
+  then<TResult1 = unknown[], TResult2 = never>(
+    onFulfilled?: ((value: unknown[]) => TResult1 | PromiseLike<TResult1>) | null,
+    onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): Promise<TResult1 | TResult2> {
+    return Promise.resolve(nextSelect()).then(onFulfilled, onRejected) as Promise<TResult1 | TResult2>;
   },
 };
 
 const updateWhereChain = {
   returning: jest.fn().mockImplementation(() => Promise.resolve(nextInsert())),
-  then(onFulfilled: (v: unknown[]) => unknown, onRejected?: (e: unknown) => unknown) {
-    return Promise.resolve(nextInsert()).then(onFulfilled as any, onRejected as any);
+  then<TResult1 = unknown[], TResult2 = never>(
+    onFulfilled?: ((value: unknown[]) => TResult1 | PromiseLike<TResult1>) | null,
+    onRejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ): Promise<TResult1 | TResult2> {
+    return Promise.resolve(nextInsert()).then(onFulfilled, onRejected) as Promise<TResult1 | TResult2>;
   },
 };
 
@@ -124,10 +130,11 @@ jest.mock('@/lib/tier', () => ({
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 import { auth } from '@/lib/auth';
-const mockAuth = auth as jest.MockedFunction<typeof auth>;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const mockAuth = auth as any;
 
 function withSession(session: typeof SESSION | null) {
-  mockAuth.mockResolvedValue(session as any);
+  mockAuth.mockResolvedValue(session);
 }
 
 function withApiKey(result: { workspaceId: string; apiKeyId: string; tier: 'free' | 'pro' | 'business'; rateLimitPerMin: number } | null) {
